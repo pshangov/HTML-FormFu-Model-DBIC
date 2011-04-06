@@ -8,6 +8,7 @@ use List::MoreUtils qw( none notall );
 use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
+use Data::Dumper::Concise qw(Dumper);
 
 our $VERSION = '0.09000';
 $VERSION = eval $VERSION;
@@ -374,8 +375,8 @@ sub update {
     foreach my $rel (@rels) {
         # 'fk_columns' is set for belong_to rels in DBIx::Class::Relationship::BelongsTo
         my @fk_columns = keys %{ $dbic->relationship_info($rel)->{attrs}{fk_columns} };
-		
-		if (@fk_columns) {
+
+        if (@fk_columns) {
             push @belongs_to_rels, $rel;
         } else {
             push @other_rels, $rel;
@@ -390,6 +391,9 @@ sub update {
     }
 
     _save_columns( $base, $dbic, $form ) or return;
+
+    return unless %{ $dbic->{_column_data} };
+
 
     $dbic->update_or_insert;
 
@@ -447,6 +451,37 @@ sub _save_relationships {
 
         next if !defined $block && !defined $multi_value;
         next if !$form->valid($rel);
+
+        ### ignore empty relationships
+        my $nested = $base->get_element({ nested_name => $rel });
+
+        if ($nested)
+        {
+            my $not_empty;
+            foreach my $el (@{ $nested->get_elements })
+            {
+                if ( $el->is_field )
+                {
+                    my $name = $el->nested_name ? $el->nested_name : $el->name;
+                    if ( $form->param_value($name) )
+                    {
+                        $not_empty++ unless $el->{_is_empty};
+                        last;
+                    }
+                }
+                else
+                {
+                    $not_empty++ unless $el->{_is_empty};
+                    last;
+                }
+            }
+
+            unless ($not_empty)
+            {
+                $nested->{_is_empty} = 1;
+                next;
+            }
+        }
 
         my $params = $form->param($rel);
 
