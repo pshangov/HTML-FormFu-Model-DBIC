@@ -4,11 +4,15 @@ use warnings;
 use base 'HTML::FormFu::Model';
 
 use HTML::FormFu::Util qw( _merge_hashes );
-use List::MoreUtils qw( none notall );
+use List::MoreUtils qw( none notall any );
 use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
 use Data::Dumper::Concise qw(Dumper);
+use Data::Printer;
+use Hash::Flatten qw(flatten);
+
+#$ENV{DBIC_TRACE} = 1;
 
 our $VERSION = '0.09000';
 $VERSION = eval $VERSION;
@@ -393,8 +397,9 @@ sub update {
     _save_columns( $base, $dbic, $form ) or return;
 
     return unless %{ $dbic->{_column_data} };
+    
 
-
+    #warn Dumper( $dbic );
     $dbic->update_or_insert;
 
     _save_relationships( $self, $base, $dbic, $form, $rs, $attrs, \@other_rels );
@@ -445,43 +450,12 @@ sub _save_relationships {
                 && $attrs->{from} eq $rs->related_source($rel)->result_class;
 
         my @elements = @{ $base->get_all_elements( { nested_name => $rel } ) };
-
+        
         my ($block) = grep { !$_->is_field } @elements;
         my ($multi_value) = grep { $_->is_field && $_->multi_value } @elements;
 
         next if !defined $block && !defined $multi_value;
         next if !$form->valid($rel);
-
-        ### ignore empty relationships
-        my $nested = $base->get_element({ nested_name => $rel });
-
-        if ($nested)
-        {
-            my $not_empty;
-            foreach my $el (@{ $nested->get_elements })
-            {
-                if ( $el->is_field )
-                {
-                    my $name = $el->nested_name ? $el->nested_name : $el->name;
-                    if ( $form->param_value($name) )
-                    {
-                        $not_empty++ unless $el->{_is_empty};
-                        last;
-                    }
-                }
-                else
-                {
-                    $not_empty++ unless $el->{_is_empty};
-                    last;
-                }
-            }
-
-            unless ($not_empty)
-            {
-                $nested->{_is_empty} = 1;
-                next;
-            }
-        }
 
         my $params = $form->param($rel);
 
@@ -493,6 +467,11 @@ sub _save_relationships {
 
         }
         elsif ( defined $block && ref $params eq 'HASH' ) {
+
+            if ($block->model_config and $block->model_config->{ignore_if_empty}) {
+                next unless _exist_parameters_for_block($block, $form->params)
+            }
+
             # It seems that $dbic->$rel must be called otherwise the following
             # find_related() can fail.
             # However, this can die - so we're just wrapping it in an eval
@@ -1107,6 +1086,33 @@ sub _delete_many_to_many {
     $dbic->$remove($row);
 
     return 1;
+}
+
+sub _exist_parameters_for_block {
+    my ($base, $params) = @_;
+
+    my $flat_params = flatten($params);
+    my %mapped_values;
+    
+    if ($base->can('parent'))
+    {
+        my $path;
+        for ( my $current_base = $base; eval { $current_base->parent }; $current_base = $current_base->parent )
+        {
+            next if $current_base->isa('HTML::FormFu::Element::Repeatable');
+            $path = ".$path"  if $path;
+            $path = $path ? $current_base->nested_name . $path : $current_base->nested_name;
+        }
+
+        my @param_names = grep { /^\Q$path\U/ } keys %$flat_params;
+        %mapped_values = map { $_ => $flat_params->{$_} } @param_names;
+    }
+    else
+    {
+        %mapped_values = %$flat_params;
+    }
+
+    return any { defined $_ && $_ ne "" } values %mapped_values;
 }
 
 1;
