@@ -1,0 +1,12 @@
+---
+model_config:
+  resultset: Master
+
+elements:
+  - type: Text
+    name: text_col
+  - type: Block
+    nested_name: type
+    elements: 
+      - type: Text
+        name: type

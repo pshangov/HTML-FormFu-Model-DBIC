@@ -1092,7 +1092,7 @@ sub _exist_parameters_for_block {
     my ($base, $params) = @_;
 
     my $flat_params = flatten($params);
-    my %mapped_values;
+    my %relevant_values;
     
     if ($base->can('parent'))
     {
@@ -1104,15 +1104,15 @@ sub _exist_parameters_for_block {
             $path = $path ? $current_base->nested_name . $path : $current_base->nested_name;
         }
 
-        my @param_names = grep { /^\Q$path\U/ } keys %$flat_params;
-        %mapped_values = map { $_ => $flat_params->{$_} } @param_names;
+        my @param_names = grep { /^\Q$path\E/ } keys %$flat_params;
+        %relevant_values = map { $_ => $flat_params->{$_} } @param_names;
     }
     else
     {
-        %mapped_values = %$flat_params;
+        %relevant_values = %$flat_params;
     }
 
-    return any { defined $_ && $_ ne "" } values %mapped_values;
+    return any { defined $_ && $_ ne "" } values %relevant_values;
 }
 
 1;
