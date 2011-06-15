@@ -1,12 +1,25 @@
 ---
 model_config:
-  resultset: Master
+  resultset: User
 
 elements:
   - type: Text
-    name: text_col
-  - type: Block
-    nested_name: type
-    elements: 
+    name: name
+  - type: Repeatable
+    nested_name: addresses
+    counter_name: addresses_counter
+    model_config:
+        new_rows_max: 10
+    elements:
       - type: Text
-        name: type
+        name: address
+      - type: Hidden
+        name: id
+      - type: Block
+        nested_name: country
+        elements:
+          - type: Hidden
+            name: id
+          - type: Text
+            name: name
+
