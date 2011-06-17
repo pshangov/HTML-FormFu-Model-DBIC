@@ -1,10 +1,16 @@
 ---
-model_config:
-  resultset: User
+auto_fieldset: 1
 
 elements:
+  - type: Hidden
+    name: id
   - type: Text
     name: name
+  - type: Block
+    nested_name: city
+    elements:
+      - type: Text
+        name: id
   - type: Repeatable
     nested_name: addresses
     counter_name: addresses_counter
@@ -16,10 +22,12 @@ elements:
       - type: Hidden
         name: id
       - type: Block
-        nested_name: country
+        nested_name: city
         elements:
-          - type: Hidden
-            name: id
           - type: Text
             name: name
+          - type: Hidden
+            name: country
+          - type: Hidden
+            name: id
 

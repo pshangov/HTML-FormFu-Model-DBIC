@@ -444,6 +444,7 @@ sub _save_relationships {
 
     for my $rel (@$rels) {
 
+
         # don't follow rels to where we came from
         next
             if defined $attrs->{from}
@@ -1086,6 +1087,26 @@ sub _delete_many_to_many {
     $dbic->$remove($row);
 
     return 1;
+}
+
+sub _calculate_block_path 
+{
+    my $block = shift;
+
+    my $path;
+
+    if ($block->can('parent')) {
+        for ( my $current_base = $block; eval { $current_base->parent }; $current_base = $current_base->parent )
+        {
+            next if $current_base->isa('HTML::FormFu::Element::Repeatable');
+            next unless $current_base->nested_name;
+            $path = $path ? $current_base->nested_name . ".$path" : $current_base->nested_name;
+        }
+        return $path;
+    } else {
+        return;
+    }
+
 }
 
 sub _exist_parameters_for_block {

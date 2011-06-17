@@ -21,23 +21,26 @@ ok 1;
 
     $form->process( { 
         'name'                     => 'Peter',
+        #'city.id'                  => '5',
         'addresses_counter'        => '2',
-        'addresses_1.address'      => 'Sliven',
+        'addresses_1.address'      => '1 Baker Street',
         'addresses_1.id'           => '',
-        'addresses_1.type.type' => '',
-        'addresses_2.address'      => 'Sofia',
+        'addresses_1.city.name'    => 'London',
+        'addresses_1.city.country' => '1',
+        'addresses_1.city.id'      => '',
+        'addresses_2.address'      => '2 Mulholland Drive',
         'addresses_2.id'           => '',
-        'addresses_2.type.type' => 'Bulgaria',
+        #'addresses_2.city.name'    => 'Los Angelis',
+        #'addresses_2.city.country' => '2',
     } );
 
     $form->model->update($rs);
 
-    #is( $rs->text_col, "test" );
-    #is( $rs->type->type, "test type" );
-
-    my @addresses = $rs->addresses;
-    my @types = map { $_->country } @addresses;
-    p @countries;
+    my $user =  $schema->resultset('User')->find(1);
+    my @addresses = $user->addresses->all;
+    p $addresses[0]->city;
+    #my @cities = map { $_->city } @addresses;
+    #p @cities;
 
 }
 

@@ -19,6 +19,9 @@ sub new_schema {
     $schema->resultset('Type2')->create({ id => 1, type => 'foo' });
     $schema->resultset('Type2')->create({ id => 2, type => 'bar' });
     
+    $schema->resultset('Country')->create({ id => 1, name => 'UK' });
+    $schema->resultset('Country')->create({ id => 2, name => 'USA' });
+    
     return $schema;
 }
 
