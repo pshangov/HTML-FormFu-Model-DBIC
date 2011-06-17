@@ -9,7 +9,7 @@ elements:
   - type: Block
     nested_name: city
     elements:
-      - type: Text
+      - type: Hidden
         name: id
   - type: Repeatable
     nested_name: addresses

@@ -439,7 +439,7 @@ sub update {
 
 sub _save_relationships {
     my ( $self, $base, $dbic, $form, $rs, $attrs, $rels ) = @_;
-
+    
     return if $attrs->{no_follow};
 
     for my $rel (@$rels) {
@@ -501,7 +501,6 @@ sub _save_relationships {
             }
         }
         elsif ( defined $multi_value ) {
-
             # belongs_to, has_one or might_have relationship
 
             my $info = $dbic->result_source->relationship_info($rel);
