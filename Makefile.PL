@@ -7,6 +7,7 @@ if ( -e 'MANIFEST.SKIP' ) {
 name 'HTML-FormFu-Model-DBIC';
 perl_version '5.008001';
 all_from 'lib/HTML/FormFu/Model/DBIC.pm';
+version '0.09001-TRIAL';
 
 repository 'git://github.com/fireartist/HTML-FormFu-Model-DBIC.git';
 
@@ -16,7 +17,7 @@ requires 'DBIx::Class' => '0.08108';
 # Rather than changing our prereqs depending on the installed version
 # of DBIx::Class, just bump the required version
 
-requires 'HTML::FormFu' => '0.09000';
+requires 'HTML::FormFu' => '0.09001';
 requires 'List::MoreUtils';
 requires 'Task::Weaken'; # to ensure Scalar::Util was built with weaken()
 requires 'YAML::Syck';
